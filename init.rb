@@ -7,9 +7,14 @@ class Heroku::Command::Base
       return unless File.exists?('.git')
 
       git('remote -v').split(/\n/).each do |line|
-        name, url, method = line.split
-        if url =~ /^(?:git@)?he(?:roku\.com|-\w+)?:([\w\d-]+)(?:\.git)?$/
-          remotes[name] = $1
+        remote, url = line.split
+        without_git = url.gsub(/\Agit@/, '').gsub(/\.git\Z/, '')
+
+        next unless match_data = without_git.match(/\A(.+):([^:]+)\Z/)
+        host, app = match_data[1..2]
+
+        if host =~ /\Ahe(?:roku)?(?:[-.]\w+)?\Z/
+          remotes[remote] = app
         end
       end
     end
